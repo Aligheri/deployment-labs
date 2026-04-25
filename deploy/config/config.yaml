@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: mywebapp
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/mywebapp
+    username: mywebapp
+    password: mywebapp_pass
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+
+server:
+  port: 8080
+  address: 127.0.0.1
