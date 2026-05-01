@@ -5,6 +5,7 @@
 ```
 lab1/   — Лаб. 1: розгортання через systemd (Spring Boot + Nginx + PostgreSQL)
 lab2/   — Лаб. 2: Dockerfile-и для дослідницької частини (Python, Golang)
+lab3/   — Лаб. 3: CI/CD (GitHub Actions, self-hosted runner, автодеплой)
 ```
 
 ---
@@ -309,3 +310,79 @@ app:
 Multi-stage build для скомпільованих мов (Go, Java) — не опціональна оптимізація, а базова гігієна: тримати SDK в продакшн-образі немає сенсу.
 
 Distroless — розумний компроміс між scratch (мінімальний розмір) і Alpine (є шелл). Різниця в 2 MB між ними не варта відмови від CA-сертифікатів і timezone.
+
+---
+
+## Лабораторна робота №3 — CI/CD
+
+### Пайплайни
+
+| Workflow | Файл | Тригер |
+|----------|------|--------|
+| CI | `.github/workflows/ci.yml` | push до `main`, анотовані теги `v*.*.*`, PR до `main` |
+| CD | `.github/workflows/cd.yml` | успішне завершення CI на анотованому тезі |
+
+**CI jobs:** `lint` → `test` → `build`
+
+- **lint**: Hadolint (Dockerfile), Shellcheck (shell-скрипти), Yamllint (YAML), Checkstyle (Java)
+- **test**: JUnit + JaCoCo, мінімальне покриття 40%; coverage-report завантажується як артефакт
+- **build**: multi-stage Docker image → GHCR (`ghcr.io/aligheri/deployment-lab1`)
+  - branch commit: `latest`, `sha-<full-hash>`
+  - анотований тег: `stable`, `<tag>`
+
+**CD jobs:** `deploy` → `verify` (запускаються на self-hosted runner з міткою `deploy`)
+
+### Структура lab3/
+
+```
+lab3/
+  setup-runner.sh       # встановлення self-hosted runner (Ubuntu 24.04)
+  setup-target.sh       # початкове налаштування target node
+  verify.sh             # верифікація після розгортання
+  deploy/
+    deploy.sh           # скрипт розгортання (виконується на target node)
+    mywebapp.service    # systemd unit для керування контейнером
+    nginx/
+      mywebapp.conf     # nginx конфіг для контейнерного розгортання
+```
+
+### Необхідні GitHub Secrets
+
+| Secret | Опис |
+|--------|------|
+| `TARGET_HOST` | IP або hostname target node |
+| `TARGET_USER` | SSH-користувач на target node (потрібен docker group + sudo systemctl) |
+| `TARGET_SSH_KEY` | Приватний SSH-ключ runner-а (`~/.ssh/target_key`) |
+| `CR_PAT` | GitHub PAT зі scope `read:packages` для pull з GHCR |
+
+### Налаштування self-hosted runner
+
+```bash
+# 1. На runner VM (Ubuntu 24.04):
+sudo bash lab3/setup-runner.sh
+
+# 2. Зареєструвати вручну (токен з GitHub → Settings → Actions → Runners):
+cd /opt/actions-runner
+sudo -u runner ./config.sh \
+  --url https://github.com/Aligheri/deployment-lab1 \
+  --token <TOKEN> \
+  --labels deploy --name deploy-runner --unattended
+/opt/actions-runner/svc.sh install runner
+/opt/actions-runner/svc.sh start
+```
+
+### Налаштування target node
+
+```bash
+# На target VM (Ubuntu 24.04):
+sudo bash lab3/setup-target.sh
+
+# Після першого деплою:
+sudo systemctl start mywebapp
+```
+
+### Branch protection
+
+У GitHub → Settings → Branches → `main`:
+- Require status checks: `Lint`, `Test`
+- Require branches to be up to date before merging
