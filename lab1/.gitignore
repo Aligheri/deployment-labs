@@ -39,7 +39,4 @@ out/
 ### Mac ###
 .DS_Store
 
-### PDF ###
-*.pdf
-
 HELP.md
