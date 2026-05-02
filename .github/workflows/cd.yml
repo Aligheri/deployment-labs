@@ -1,0 +1,71 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    name: Deploy to target node
+    runs-on: [self-hosted, deploy]
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.TARGET_SSH_KEY }}" > ~/.ssh/target_key
+          chmod 600 ~/.ssh/target_key
+
+      - name: Deploy image on target node
+        env:
+          TARGET_HOST: ${{ secrets.TARGET_HOST }}
+          TARGET_USER: ${{ secrets.TARGET_USER }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_branch }}
+          CR_PAT: ${{ secrets.CR_PAT }}
+          GHCR_USER: ${{ github.actor }}
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/target_key \
+              "${TARGET_USER}@${TARGET_HOST}" \
+              "IMAGE_TAG=${IMAGE_TAG} CR_PAT=${CR_PAT} GHCR_USER=${GHCR_USER} bash -s" \
+              < lab3/deploy/deploy.sh
+
+  verify:
+    name: Verify deployment
+    runs-on: [self-hosted, deploy]
+    needs: deploy
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.TARGET_SSH_KEY }}" > ~/.ssh/target_key
+          chmod 600 ~/.ssh/target_key
+
+      - name: Run verification on target node
+        env:
+          TARGET_HOST: ${{ secrets.TARGET_HOST }}
+          TARGET_USER: ${{ secrets.TARGET_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/target_key \
+              "${TARGET_USER}@${TARGET_HOST}" \
+              'TARGET_HOST=localhost bash -s' \
+              < lab3/verify.sh
