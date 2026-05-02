@@ -1,0 +1,25 @@
+[Unit]
+Description=mywebapp Spring Boot container
+After=docker.service network-online.target postgresql.service
+Wants=docker.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=mywebapp
+EnvironmentFile=/etc/mywebapp/image.env
+Restart=always
+RestartSec=10
+ExecStartPre=-/usr/bin/docker stop mywebapp
+ExecStartPre=-/usr/bin/docker rm mywebapp
+ExecStart=/usr/bin/docker run \
+    --name mywebapp \
+    --network host \
+    -v /etc/mywebapp/config.yaml:/etc/mywebapp/config.yaml:ro \
+    --log-driver=journald \
+    --log-opt tag=mywebapp \
+    ${IMAGE}
+ExecStop=/usr/bin/docker stop mywebapp
+
+[Install]
+WantedBy=multi-user.target
