@@ -6,7 +6,7 @@
 # After this script: register the runner MANUALLY (do not add tokens to the repo):
 #   cd /opt/actions-runner
 #   sudo -u runner ./config.sh \
-#     --url https://github.com/Aligheri/deployment-lab1 \
+#     --url https://github.com/Aligheri/deployment-labs \
 #     --token <TOKEN_FROM_GITHUB_SETTINGS> \
 #     --labels deploy \
 #     --name deploy-runner \
@@ -76,7 +76,7 @@ echo ""
 echo "3. Register the runner (TOKEN from GitHub repo → Settings → Actions → Runners):"
 echo "   cd ${RUNNER_DIR}"
 echo "   sudo -u ${RUNNER_USER} ./config.sh \\"
-echo "     --url https://github.com/Aligheri/deployment-lab1 \\"
+echo "     --url https://github.com/Aligheri/deployment-labs \\"
 echo "     --token <TOKEN> \\"
 echo "     --labels deploy \\"
 echo "     --name deploy-runner \\"

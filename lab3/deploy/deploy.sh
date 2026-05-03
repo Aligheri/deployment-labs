@@ -6,7 +6,7 @@
 set -euo pipefail
 
 REGISTRY="ghcr.io"
-REPO="aligheri/deployment-lab1"
+REPO="aligheri/deployment-labs"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 FULL_IMAGE="${REGISTRY}/${REPO}:${IMAGE_TAG}"
 

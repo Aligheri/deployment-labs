@@ -79,7 +79,7 @@ chown "${APP_USER}:${APP_USER}" "${CONFIG_DIR}/config.yaml"
 chmod 640 "${CONFIG_DIR}/config.yaml"
 
 # Placeholder image env file (updated by deploy.sh on each deployment)
-echo "IMAGE=ghcr.io/aligheri/deployment-lab1:latest" > "${CONFIG_DIR}/image.env"
+echo "IMAGE=ghcr.io/aligheri/deployment-labs:latest" > "${CONFIG_DIR}/image.env"
 chown "${APP_USER}:${APP_USER}" "${CONFIG_DIR}/image.env"
 chmod 640 "${CONFIG_DIR}/image.env"
 

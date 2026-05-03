@@ -1,6 +1,6 @@
 # Лабораторні роботи з Деплойменту
 
-**Студент:** Іван Євсєєв | [GitHub репозиторій](https://github.com/Aligheri/deployment-lab1)
+**Студент:** Іван Євсєєв | [GitHub репозиторій](https://github.com/Aligheri/deployment-labs)
 
 ## Зміст
 
@@ -212,7 +212,7 @@ sudo bash lab3/setup-runner.sh
 # 2. Зареєструвати (токен: GitHub → Settings → Actions → Runners)
 cd /opt/actions-runner
 sudo -u runner ./config.sh \
-  --url https://github.com/Aligheri/deployment-lab1 \
+  --url https://github.com/Aligheri/deployment-labs \
   --token <TOKEN> --labels deploy --name deploy-runner --unattended
 sudo ./svc.sh install runner && sudo ./svc.sh start
 ```
