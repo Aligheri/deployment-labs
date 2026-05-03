@@ -41,13 +41,17 @@ sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER}"
 
 # Schema migration
-sudo -u postgres psql "${DB_NAME}" << 'SQL'
+sudo -u postgres psql "${DB_NAME}" << SQL
 CREATE TABLE IF NOT EXISTS items (
     id        BIGSERIAL    PRIMARY KEY,
     name      VARCHAR(255) NOT NULL,
     quantity  INTEGER      NOT NULL,
     created_at TIMESTAMP   NOT NULL DEFAULT NOW()
 );
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${DB_USER};
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${DB_USER};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${DB_USER};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${DB_USER};
 SQL
 
 # System user to run the container
